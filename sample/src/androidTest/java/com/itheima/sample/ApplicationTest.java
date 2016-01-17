@@ -1,4 +1,4 @@
-package org.seny.android;
+package com.itheima.sample;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

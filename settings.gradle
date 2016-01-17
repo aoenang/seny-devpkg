@@ -1,1 +1,1 @@
-include ':app', ':devpkg-android'
+include ':devpkg-android', ':sample'

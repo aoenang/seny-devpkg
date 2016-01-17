@@ -1,4 +1,4 @@
-package seny.android.utils;
+package org.senydevpkg.utils;
 
 import android.content.Context;
 

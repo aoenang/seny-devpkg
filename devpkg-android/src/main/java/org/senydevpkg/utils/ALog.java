@@ -1,9 +1,12 @@
-package org.seny.android.utils;
+package org.senydevpkg.utils;
 
 import android.util.Log;
 
 /**
- * 自定义的日志处理器
+ * 自定义的日志处理器。提供
+ * 1. 日志等级管理
+ * 2. 日志格式输出调用类名，方法名，行数信息
+ * 3. 通过一个TAG打印所有日志信息。方便过滤。
  *
  * @author Seny
  */
