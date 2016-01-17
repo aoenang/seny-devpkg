@@ -238,10 +238,12 @@ public class HttpLoader {
     private static GsonRequest makeGsonRequest(int method, String url, IReq params, Class<? extends IResp> clazz, int requestCode, HttpListener listener, boolean isCache) {
         ResponseListener responseListener = new ResponseListener(requestCode, listener);
         Map<String, String> paramsMap = null;//默认为null
-        if (method == Request.Method.GET) {
-            url = url + buildGetParam(params.getParams());//如果是get请求，则把参数拼在url后面
-        } else {
-            paramsMap = params.getParams();//如果不是get请求，取出IReq中的Map参数集合。
+        if (params != null) {//如果有参数，则构建参数
+            if (method == Request.Method.GET) {
+                url = url + buildGetParam(params.getParams());//如果是get请求，则把参数拼在url后面
+            } else {
+                paramsMap = params.getParams();//如果不是get请求，取出IReq中的Map参数集合。
+            }
         }
         GsonRequest request = new GsonRequest<>(method, url, paramsMap, clazz, responseListener, responseListener, isCache);
         request.setRetryPolicy(new DefaultRetryPolicy());//设置超时时间，重试次数，重试因子（1,1*2,2*2,4*2）等
