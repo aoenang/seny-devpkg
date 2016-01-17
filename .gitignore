@@ -40,3 +40,4 @@ proguard/
 *.ipr
 *.iws
 *.sw?
+gradle.properties
