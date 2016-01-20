@@ -72,9 +72,9 @@ public class HttpLoader {
     private Context mContext;
 
     private HttpLoader(Context context) {
-        mContext = context;
-        mRequestQueue = Volley.newRequestQueue(context);
-        mImageLoader = new ImageLoader(mRequestQueue, new VolleyImageCacheImpl(context));
+        mContext = context.getApplicationContext();
+        mRequestQueue = Volley.newRequestQueue(mContext);
+        mImageLoader = new ImageLoader(mRequestQueue, new VolleyImageCacheImpl(mContext));
     }
 
 
