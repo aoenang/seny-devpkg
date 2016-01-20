@@ -26,14 +26,12 @@ import java.io.OutputStream;
 public class VolleyImageCacheImpl implements ImageCache {
 
     //磁盘缓存大小
-    private static final int DISK_MAX_SIZE = 10 * 1024 * 1024;
+    private static final int DISK_MAX_SIZE = 10 * 1024 * 1024;//默认10M
     //缓存类
     private LruCache<String, Bitmap> mLruCache;
     private DiskLruCache mDiskLruCache;
-    private Context mContext;
 
     public VolleyImageCacheImpl(Context context) {
-        mContext = context;
         // 获取应用可占内存的1/8作为缓存
         int maxSize = (int) (Runtime.getRuntime().maxMemory() / 8);
         // 实例化LruCache对象
@@ -60,9 +58,10 @@ public class VolleyImageCacheImpl implements ImageCache {
      */
     public File getDiskCacheDir(Context context, String uniqueName) {
         String cachePath;
+        File externalCacheDir = context.getExternalCacheDir();
         if ((Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-                || !Environment.isExternalStorageRemovable() && context.getExternalCacheDir() != null)) {
-            cachePath = context.getExternalCacheDir().getPath();
+                || !Environment.isExternalStorageRemovable()) && externalCacheDir != null) {
+            cachePath = externalCacheDir.getPath();
         } else {
             cachePath = context.getCacheDir().getPath();
         }
@@ -80,7 +79,7 @@ public class VolleyImageCacheImpl implements ImageCache {
         } else {
             String key = MD5Utils.encode(url);
             try {
-                if (mDiskLruCache.get(key) != null) {
+                if (mDiskLruCache != null && mDiskLruCache.get(key) != null) {
                     // 从DiskLruCahce取
                     DiskLruCache.Snapshot snapshot = mDiskLruCache.get(key);
                     Bitmap bitmap = null;
@@ -110,7 +109,7 @@ public class VolleyImageCacheImpl implements ImageCache {
         // 判断是否存在DiskLruCache缓存，若没有存入
         String key = MD5Utils.encode(url);
         try {
-            if (mDiskLruCache.get(key) == null) {
+            if (mDiskLruCache != null && mDiskLruCache.get(key) == null) {
                 DiskLruCache.Editor editor = mDiskLruCache.edit(key);
                 if (editor != null) {
                     OutputStream outputStream = editor.newOutputStream(0);
