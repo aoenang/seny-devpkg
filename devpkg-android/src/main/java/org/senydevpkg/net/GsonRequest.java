@@ -1,5 +1,7 @@
 package org.senydevpkg.net;
 
+import android.content.Context;
+
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Request;
@@ -8,10 +10,10 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import org.senydevpkg.DevPkg;
 import org.senydevpkg.net.resp.ErrorResp;
 import org.senydevpkg.utils.ALog;
 import org.senydevpkg.utils.MD5Utils;
+import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.File;
@@ -25,15 +27,13 @@ import java.util.Map;
  * @param <T>
  */
 public class GsonRequest<T> extends Request<T> {
-    static {
-        DevPkg.checkInit();
-    }
 
     public final Gson gson = new Gson();
     private final Class<? extends T> mClazz;
     private final Map<String, String> mParams;
     private final Response.Listener<T> mListener;
     private boolean mIsCache;
+    private Context mContext;
 
     /**
      * 初始化
@@ -46,12 +46,14 @@ public class GsonRequest<T> extends Request<T> {
      * @param errorListener 处理错误信息的监听器
      */
     public GsonRequest(int method, String url, Map<String, String> params, Class<? extends T> clazz,
-                       Response.Listener<T> listener, Response.ErrorListener errorListener, boolean isCache) {
+                       Response.Listener<T> listener, Response.ErrorListener errorListener, boolean isCache, Context context) {
         super(method, url, errorListener);
-        this.mClazz = clazz;
-        this.mParams = params;
-        this.mListener = listener;
-        this.mIsCache = isCache;
+        mClazz = clazz;
+        mParams = params;
+        mListener = listener;
+        mIsCache = isCache;
+        mContext = context;
+        Assert.notNull(mContext);
     }
 
 
@@ -90,7 +92,7 @@ public class GsonRequest<T> extends Request<T> {
                 if (mIsCache) {
                     //如果解析成功，并且需要缓存则将json字符串缓存到本地
                     ALog.i("Save response to local!");
-                    FileCopyUtils.copy(response.data, new File(DevPkg.application.getCacheDir(), "" + MD5Utils.encode(getUrl())));
+                    FileCopyUtils.copy(response.data, new File(mContext.getCacheDir(), "" + MD5Utils.encode(getUrl())));
                 }
             } catch (JsonSyntaxException e) {
                 result = (T) gson.fromJson(json, ErrorResp.class);//解析失败，按错误响应

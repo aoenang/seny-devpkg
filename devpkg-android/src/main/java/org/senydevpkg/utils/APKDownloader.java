@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Environment;
 
-import org.senydevpkg.DevPkg;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -48,15 +47,12 @@ public class APKDownloader {
     /**
      * 保存已下载的任务
      */
-    private static List<Long> ids = new ArrayList<Long>();
+    private static List<Long> sIds = new ArrayList<>();
     /**
      * 系统下载服务
      */
-    private static DownloadManager DM = (DownloadManager) DevPkg.application.getSystemService(Context.DOWNLOAD_SERVICE);
+    private static DownloadManager mDownloadManager;
 
-    static {
-        DevPkg.checkInit();
-    }
 
     private APKDownloader() {
     }
@@ -66,13 +62,14 @@ public class APKDownloader {
      *
      * @return APKDownloader对象
      */
-    public static APKDownloader getInstance() {
-
+    public static APKDownloader getInstance(Context context) {
+        Assert.notNull(context);
         if (mInstance == null) {
             mInstance = new APKDownloader();
+            mDownloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
             IntentFilter intentfilter = new IntentFilter();
             intentfilter.addAction("android.intent.action.DOWNLOAD_COMPLETE");
-            DevPkg.application.registerReceiver(receiver, intentfilter);
+            context.registerReceiver(receiver, intentfilter);
         }
         return mInstance;
     }
@@ -91,8 +88,8 @@ public class APKDownloader {
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUri));
         request.setMimeType("application/vnd.android.package-archive");
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, apkName);
-        long id = DM.enqueue(request);
-        ids.add(id);
+        long id = mDownloadManager.enqueue(request);
+        sIds.add(id);
         return id;
     }
 
@@ -103,11 +100,11 @@ public class APKDownloader {
         @Override
         public void onReceive(Context context, Intent intent) {
             long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-            if (ids.contains(id)) {//如果本应用发起的下载请求完成了才发起安装请求
-                ids.remove(id);//删除已保存的ID
+            if (sIds.contains(id)) {//如果本应用发起的下载请求完成了才发起安装请求
+                sIds.remove(id);//删除已保存的ID
                 ALog.d(intent.toString());
                 Intent install = new Intent(Intent.ACTION_VIEW);
-                Uri downloadFileUri = DM.getUriForDownloadedFile(id);
+                Uri downloadFileUri = mDownloadManager.getUriForDownloadedFile(id);
                 install.setDataAndType(downloadFileUri, "application/vnd.android.package-archive");
                 install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(install);

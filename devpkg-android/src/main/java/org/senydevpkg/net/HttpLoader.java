@@ -1,5 +1,6 @@
 package org.senydevpkg.net;
 
+import android.content.Context;
 import android.text.TextUtils;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -10,13 +11,13 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 
-import org.senydevpkg.DevPkg;
 import org.senydevpkg.net.req.IReq;
 import org.senydevpkg.net.resp.ErrorResp;
 import org.senydevpkg.net.resp.IResp;
 import org.senydevpkg.utils.ALog;
 import org.senydevpkg.utils.MD5Utils;
 import org.senydevpkg.utils.MyToast;
+import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.File;
@@ -47,9 +48,9 @@ import java.util.Map;
  * 　　　　　┃┫┫　┃┫┫
  * 　　　　　┗┻┛　┗┻┛
  * ━━━━ bug with the XYY protecting━━━
- * <p/>
+ * <p>
  * Created by Seny on 2015/12/1.
- * <p/>
+ * <p>
  * 网络请求核心类。负责封装get，set请求，初始化RequestQueue及ImageLoader
  */
 public class HttpLoader {
@@ -59,17 +60,36 @@ public class HttpLoader {
      */
     private static final HashMap<Integer, Request> sInFlightRequests =
             new HashMap<>();
+    private static HttpLoader mInstance;
     /**
      * 消息队列，全局使用一个
      */
-    private static RequestQueue sRequestQueue = Volley.newRequestQueue(DevPkg.application);
+    private RequestQueue sRequestQueue;
     /**
      * 图片加载工具，自定义缓存机制
      */
-    private static ImageLoader sImageLoader = new ImageLoader(sRequestQueue, new VolleyImageCacheImpl(DevPkg.application));
+    private ImageLoader sImageLoader;
+    private Context mContext;
 
-    static {
-        DevPkg.checkInit();
+    private HttpLoader(Context context) {
+        mContext = context;
+        sRequestQueue = Volley.newRequestQueue(context);
+        sImageLoader = new ImageLoader(sRequestQueue, new VolleyImageCacheImpl(context));
+    }
+
+
+    /**
+     * 返回HttpLoader 单例对象
+     *
+     * @param context
+     * @return
+     */
+    public static synchronized HttpLoader getInstance(Context context) {
+        if (mInstance == null) {
+            Assert.notNull(context);
+            mInstance = new HttpLoader(context);
+        }
+        return mInstance;
     }
 
     /**
@@ -78,7 +98,7 @@ public class HttpLoader {
      * @param requestCode 请求的唯一标识码
      * @return 返回该Request，方便链式编程
      */
-    public static Request addRequest(Request<?> request, int requestCode) {
+    public Request addRequest(Request<?> request, int requestCode) {
         if (sRequestQueue != null && request != null) {
             sRequestQueue.add(request);
         }
@@ -92,7 +112,7 @@ public class HttpLoader {
      * @param tag 请求TAG
      */
 
-    public static void cancelRequest(Object tag) {
+    public void cancelRequest(Object tag) {
         if (sRequestQueue != null) {
             sRequestQueue.cancelAll(tag);//从请求队列中取消对应的任务
         }
@@ -112,7 +132,7 @@ public class HttpLoader {
      *
      * @return
      */
-    public static ImageLoader getImageLoader() {
+    public ImageLoader getImageLoader() {
         return sImageLoader;
     }
 
@@ -122,7 +142,7 @@ public class HttpLoader {
      * @param param get请求map集合
      * @return get请求的字符串结构
      */
-    private static String buildGetParam(Map<String, String> param) {
+    private String buildGetParam(Map<String, String> param) {
 
         StringBuilder buffer = new StringBuilder();
         if (param != null) {
@@ -152,7 +172,6 @@ public class HttpLoader {
         return str;
     }
 
-
     /**
      * 发送GsonRequest请求
      *
@@ -165,7 +184,7 @@ public class HttpLoader {
      * @param isCache     是否需要缓存本次响应的结果
      */
 
-    private static Request request(int method, String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener, boolean isCache) {
+    private Request request(int method, String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener, boolean isCache) {
         Request request = sInFlightRequests.get(requestCode);
         if (request == null) {
             request = makeGsonRequest(method, url, params, clazz, requestCode, listener, isCache);
@@ -190,7 +209,7 @@ public class HttpLoader {
      * @param requestCode 请求码 每次请求对应一个code作为改Request的唯一标识
      * @param listener    处理响应的监听器
      */
-    public static Request get(String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener) {
+    public Request get(String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener) {
         return request(Request.Method.GET, url, params, clazz, requestCode, listener, true);
     }
 
@@ -204,7 +223,7 @@ public class HttpLoader {
      * @param listener    处理响应的监听器
      * @param isCache     是否需要缓存本次响应的结果,没有网络时会使用本地缓存
      */
-    public static Request get(String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener, boolean isCache) {
+    public Request get(String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener, boolean isCache) {
         return request(Request.Method.GET, url, params, clazz, requestCode, listener, isCache);
     }
 
@@ -217,10 +236,9 @@ public class HttpLoader {
      * @param requestCode 请求码 每次请求对应一个code作为改Request的唯一标识
      * @param listener    处理响应的监听器
      */
-    public static Request post(String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener) {
+    public Request post(String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener) {
         return request(Request.Method.POST, url, params, clazz, requestCode, listener, false);//POST请求不缓存
     }
-
 
     /**
      * 初始化一个GsonRequest
@@ -233,7 +251,7 @@ public class HttpLoader {
      * @param listener    监听器用来响应结果
      * @return 返回一个GsonRequest对象
      */
-    private static GsonRequest makeGsonRequest(int method, String url, IReq params, Class<? extends IResp> clazz, int requestCode, HttpListener listener, boolean isCache) {
+    private GsonRequest makeGsonRequest(int method, String url, IReq params, Class<? extends IResp> clazz, int requestCode, HttpListener listener, boolean isCache) {
         ResponseListener responseListener = new ResponseListener(requestCode, listener);
         Map<String, String> paramsMap = null;//默认为null
         if (params != null) {//如果有参数，则构建参数
@@ -243,7 +261,7 @@ public class HttpLoader {
                 paramsMap = params.getParams();//如果不是get请求，取出IReq中的Map参数集合。
             }
         }
-        GsonRequest request = new GsonRequest<>(method, url, paramsMap, clazz, responseListener, responseListener, isCache);
+        GsonRequest request = new GsonRequest<>(method, url, paramsMap, clazz, responseListener, responseListener, isCache, mContext);
         request.setRetryPolicy(new DefaultRetryPolicy());//设置超时时间，重试次数，重试因子（1,1*2,2*2,4*2）等
         return request;
     }
@@ -253,12 +271,12 @@ public class HttpLoader {
      *
      * @param request 要寻找缓存的request
      */
-    private static void tryLoadCacheResponse(Request request, int requestCode, HttpListener listener) {
+    private void tryLoadCacheResponse(Request request, int requestCode, HttpListener listener) {
         ALog.d("Try to  load cache response first !");
         if (listener != null && request != null) {
             try {
                 //获取缓存文件
-                File cacheFile = new File(DevPkg.application.getCacheDir(), "" + MD5Utils.encode(request.getUrl()));
+                File cacheFile = new File(mContext.getCacheDir(), "" + MD5Utils.encode(request.getUrl()));
                 StringWriter sw = new StringWriter();
                 //读取缓存文件
                 FileCopyUtils.copy(new FileReader(cacheFile), sw);
@@ -302,7 +320,7 @@ public class HttpLoader {
     /**
      * ResponseListener，封装了Volley错误和成功的回调监，并执行一些默认处理，同时会将事件通过HttpListener抛到UI层
      */
-    private static class ResponseListener implements Response.ErrorListener, Response.Listener<IResp> {
+    private class ResponseListener implements Response.ErrorListener, Response.Listener<IResp> {
 
         private HttpListener listener;
         private int requestCode;
@@ -332,7 +350,7 @@ public class HttpLoader {
                 //执行通用处理，如果是服务器返回的ErrorResponse，直接提示错误信息并返回
                 if (response instanceof ErrorResp) {
                     ErrorResp errorRes = (ErrorResp) response;
-                    MyToast.show(DevPkg.application, errorRes.getErrorMsg());
+                    MyToast.show(mContext, errorRes.getErrorMsg());
                     return;
                 }
 
