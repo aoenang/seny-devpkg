@@ -60,21 +60,21 @@ public class HttpLoader {
      */
     private static final HashMap<Integer, Request> sInFlightRequests =
             new HashMap<>();
-    private static HttpLoader mInstance;
+    private static HttpLoader sInstance;
     /**
      * 消息队列，全局使用一个
      */
-    private RequestQueue sRequestQueue;
+    private RequestQueue mRequestQueue;
     /**
      * 图片加载工具，自定义缓存机制
      */
-    private ImageLoader sImageLoader;
+    private ImageLoader mImageLoader;
     private Context mContext;
 
     private HttpLoader(Context context) {
         mContext = context;
-        sRequestQueue = Volley.newRequestQueue(context);
-        sImageLoader = new ImageLoader(sRequestQueue, new VolleyImageCacheImpl(context));
+        mRequestQueue = Volley.newRequestQueue(context);
+        mImageLoader = new ImageLoader(mRequestQueue, new VolleyImageCacheImpl(context));
     }
 
 
@@ -85,11 +85,11 @@ public class HttpLoader {
      * @return
      */
     public static synchronized HttpLoader getInstance(Context context) {
-        if (mInstance == null) {
+        if (sInstance == null) {
             Assert.notNull(context);
-            mInstance = new HttpLoader(context);
+            sInstance = new HttpLoader(context);
         }
-        return mInstance;
+        return sInstance;
     }
 
     /**
@@ -99,8 +99,8 @@ public class HttpLoader {
      * @return 返回该Request，方便链式编程
      */
     public Request addRequest(Request<?> request, int requestCode) {
-        if (sRequestQueue != null && request != null) {
-            sRequestQueue.add(request);
+        if (mRequestQueue != null && request != null) {
+            mRequestQueue.add(request);
         }
         sInFlightRequests.put(requestCode, request);
         return request;//添加到正在处理请求中
@@ -113,8 +113,8 @@ public class HttpLoader {
      */
 
     public void cancelRequest(Object tag) {
-        if (sRequestQueue != null) {
-            sRequestQueue.cancelAll(tag);//从请求队列中取消对应的任务
+        if (mRequestQueue != null) {
+            mRequestQueue.cancelAll(tag);//从请求队列中取消对应的任务
         }
         //同时在mInFlightRequests删除保存所有TAG匹配的Request
         Iterator<Map.Entry<Integer, Request>> it = sInFlightRequests.entrySet().iterator();
@@ -133,7 +133,7 @@ public class HttpLoader {
      * @return
      */
     public ImageLoader getImageLoader() {
-        return sImageLoader;
+        return mImageLoader;
     }
 
     /**
