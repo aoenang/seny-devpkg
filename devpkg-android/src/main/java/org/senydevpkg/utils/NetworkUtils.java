@@ -93,38 +93,23 @@ public class NetworkUtils {
         }
 
         switch (telephonyManager.getNetworkType()) {
-            case TelephonyManager.NETWORK_TYPE_1xRTT:
-                return false;
-            case TelephonyManager.NETWORK_TYPE_CDMA:
-                return false;
-            case TelephonyManager.NETWORK_TYPE_EDGE:
-                return false;
             case TelephonyManager.NETWORK_TYPE_EVDO_0:
-                return true;
             case TelephonyManager.NETWORK_TYPE_EVDO_A:
-                return true;
-            case TelephonyManager.NETWORK_TYPE_GPRS:
-                return false;
             case TelephonyManager.NETWORK_TYPE_HSDPA:
-                return true;
             case TelephonyManager.NETWORK_TYPE_HSPA:
-                return true;
             case TelephonyManager.NETWORK_TYPE_HSUPA:
-                return true;
             case TelephonyManager.NETWORK_TYPE_UMTS:
-                return true;
             case TelephonyManager.NETWORK_TYPE_EHRPD:
-                return true;
             case TelephonyManager.NETWORK_TYPE_EVDO_B:
-                return true;
             case TelephonyManager.NETWORK_TYPE_HSPAP:
-                return true;
-            case TelephonyManager.NETWORK_TYPE_IDEN:
-                return false;
             case TelephonyManager.NETWORK_TYPE_LTE:
                 return true;
+            case TelephonyManager.NETWORK_TYPE_1xRTT:
+            case TelephonyManager.NETWORK_TYPE_CDMA:
+            case TelephonyManager.NETWORK_TYPE_EDGE:
+            case TelephonyManager.NETWORK_TYPE_GPRS:
+            case TelephonyManager.NETWORK_TYPE_IDEN:
             case TelephonyManager.NETWORK_TYPE_UNKNOWN:
-                return false;
             default:
                 return false;
         }
