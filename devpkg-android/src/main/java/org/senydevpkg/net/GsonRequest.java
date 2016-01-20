@@ -26,9 +26,7 @@ import java.util.Map;
  */
 public class GsonRequest<T> extends Request<T> {
     static {
-        if (!DevPkg.isInit) {
-            throw new IllegalStateException("Please invoke DevPkg.init(Application app) first,OK?");
-        }
+        DevPkg.checkInit();
     }
 
     public final Gson gson = new Gson();

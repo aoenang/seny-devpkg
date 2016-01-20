@@ -55,9 +55,7 @@ public class APKDownloader {
     private static DownloadManager DM = (DownloadManager) DevPkg.application.getSystemService(Context.DOWNLOAD_SERVICE);
 
     static {
-        if (!DevPkg.isInit) {
-            throw new IllegalStateException("Please invoke DevPkg.init(Application app) first,OK?");
-        }
+        DevPkg.checkInit();
     }
 
     private APKDownloader() {

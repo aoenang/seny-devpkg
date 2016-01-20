@@ -33,7 +33,7 @@ public class DevPkg {
     /**
      * 是否初始化过工具包
      */
-    public static boolean isInit;
+    private static boolean mIsInit;
 
 
     /**
@@ -42,9 +42,16 @@ public class DevPkg {
      * @param application 全局的Context
      */
     public static void init(Application application) {
-        if (!isInit) {
-            DevPkg.application = application;
-            isInit = true;
+        DevPkg.application = application;
+        mIsInit = true;
+    }
+
+    /**
+     * 校验是否初始化过
+     */
+    public static void checkInit() {
+        if (!mIsInit) {
+            throw new IllegalStateException("Please invoke DevPkg.init(Application application) at Application.onCreate() !!");
         }
     }
 

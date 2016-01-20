@@ -69,9 +69,7 @@ public class HttpLoader {
     private static ImageLoader sImageLoader = new ImageLoader(sRequestQueue, new VolleyImageCacheImpl(DevPkg.application));
 
     static {
-        if (!DevPkg.isInit) {
-            throw new IllegalStateException("Please invoke DevPkg.init(Application app) first,OK?");
-        }
+        DevPkg.checkInit();
     }
 
     /**
