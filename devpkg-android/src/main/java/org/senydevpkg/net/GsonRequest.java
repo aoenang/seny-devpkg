@@ -31,11 +31,11 @@ public class GsonRequest<T> extends Request<T> {
         }
     }
 
-    private final Gson gson = new Gson();
-    private final Class<? extends T> clazz;
-    private final Map<String, String> params;
-    private final Response.Listener<T> listener;
-    private boolean isCache;
+    public final Gson gson = new Gson();
+    private final Class<? extends T> mClazz;
+    private final Map<String, String> mParams;
+    private final Response.Listener<T> mListener;
+    private boolean mIsCache;
 
     /**
      * 初始化
@@ -50,15 +50,12 @@ public class GsonRequest<T> extends Request<T> {
     public GsonRequest(int method, String url, Map<String, String> params, Class<? extends T> clazz,
                        Response.Listener<T> listener, Response.ErrorListener errorListener, boolean isCache) {
         super(method, url, errorListener);
-        this.clazz = clazz;
-        this.params = params;
-        this.listener = listener;
-        this.isCache = isCache;
+        this.mClazz = clazz;
+        this.mParams = params;
+        this.mListener = listener;
+        this.mIsCache = isCache;
     }
 
-    public Gson getGson() {
-        return gson;
-    }
 
     /**
      * 获取GsonRequest所要解析Class类型
@@ -66,17 +63,19 @@ public class GsonRequest<T> extends Request<T> {
      * @return GSON解析的对象字节码
      */
     public Class<? extends T> getClazz() {
-        return clazz;
+        return mClazz;
     }
 
     @Override
     public Map<String, String> getParams() {
-        return params;
+        return mParams;
     }
 
     @Override
     protected void deliverResponse(T response) {
-        listener.onResponse(response);
+        if (mListener != null) {
+            mListener.onResponse(response);
+        }
     }
 
     @Override
@@ -89,8 +88,8 @@ public class GsonRequest<T> extends Request<T> {
 
             T result = null;
             try {
-                result = gson.fromJson(json, clazz);//按正常响应解析
-                if (isCache) {
+                result = gson.fromJson(json, mClazz);//按正常响应解析
+                if (mIsCache) {
                     //如果解析成功，并且需要缓存则将json字符串缓存到本地
                     ALog.i("Save response to local!");
                     FileCopyUtils.copy(response.data, new File(DevPkg.application.getCacheDir(), "" + MD5Utils.encode(getUrl())));

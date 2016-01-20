@@ -58,7 +58,7 @@ public class HttpLoader {
      * 过滤重复请求。保存当前正在消息队列中执行的Request.key为对应的requestCode.
      */
     private static final HashMap<Integer, Request> sInFlightRequests =
-            new HashMap<Integer, Request>();
+            new HashMap<>();
     /**
      * 消息队列，全局使用一个
      */
@@ -267,7 +267,7 @@ public class HttpLoader {
                 if (request instanceof GsonRequest) {
                     //如果是GsonRequest，那么解析出本地缓存的json数据为GsonRequest
                     GsonRequest gr = (GsonRequest) request;
-                    IResp response = (IResp) gr.getGson().fromJson(sw.toString(), gr.getClazz());
+                    IResp response = (IResp) gr.gson.fromJson(sw.toString(), gr.getClazz());
                     //传给onResponse，让前面的人用缓存数据
                     listener.onGetResponseSuccess(requestCode, response);
                     ALog.d("Load cache response success !");

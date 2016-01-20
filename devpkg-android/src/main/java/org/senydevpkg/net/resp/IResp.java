@@ -25,7 +25,4 @@ package org.senydevpkg.net.resp;
  * 接口IResp 用于封装服务器返回的数据，定义接口，用于HttpLoader的通用性。
  */
 public interface IResp {
-
-
-
 }
