@@ -1,7 +1,6 @@
 package org.senydevpkg.net;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -11,9 +10,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 
-import org.senydevpkg.net.req.IReq;
-import org.senydevpkg.net.resp.ErrorResp;
-import org.senydevpkg.net.resp.IResp;
+import org.senydevpkg.net.resp.ErrorResponse;
+import org.senydevpkg.net.resp.IResponse;
 import org.senydevpkg.utils.ALog;
 import org.senydevpkg.utils.MD5Utils;
 import org.senydevpkg.utils.MyToast;
@@ -23,8 +21,6 @@ import org.springframework.util.FileCopyUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -48,19 +44,19 @@ import java.util.Map;
  * 　　　　　┃┫┫　┃┫┫
  * 　　　　　┗┻┛　┗┻┛
  * ━━━━ bug with the XYY protecting━━━
- * <p>
+ * <p/>
  * Created by Seny on 2015/12/1.
- * <p>
- * 网络请求核心类。负责封装get，set请求，初始化RequestQueue及ImageLoader
+ * <p/>
+ * 网络请求核心类。负责封装get，post请求(GsonRequest)，支持添加自定义Request。初始化RequestQueue及ImageLoader
  */
 public class HttpLoader {
 
+    private static HttpLoader sInstance;
     /**
      * 过滤重复请求。保存当前正在消息队列中执行的Request.key为对应的requestCode.
      */
-    private static final HashMap<Integer, Request> sInFlightRequests =
+    private final HashMap<Integer, Request<?>> mInFlightRequests =
             new HashMap<>();
-    private static HttpLoader sInstance;
     /**
      * 消息队列，全局使用一个
      */
@@ -93,17 +89,32 @@ public class HttpLoader {
     }
 
     /**
-     * 添加一个请求到请求队列
+     * 添加一个请求到请求队列.支持任意Request
+     *
+     * @return 返回该Request，方便链式编程
+     */
+    public Request<?> addRequest(Request<?> request) {
+        if (mRequestQueue != null && request != null) {
+            mRequestQueue.add(request);
+        }
+        return request;
+
+    }
+
+
+    /**
+     * 添加一个HttpLoader管理和创建的的Request请求到请求队列.
      *
      * @param requestCode 请求的唯一标识码
      * @return 返回该Request，方便链式编程
      */
-    public Request addRequest(Request<?> request, int requestCode) {
+    private Request<?> addRequest(Request<?> request, int requestCode) {
         if (mRequestQueue != null && request != null) {
             mRequestQueue.add(request);
+            mInFlightRequests.put(requestCode, request);
         }
-        sInFlightRequests.put(requestCode, request);
         return request;//添加到正在处理请求中
+
     }
 
     /**
@@ -117,9 +128,9 @@ public class HttpLoader {
             mRequestQueue.cancelAll(tag);//从请求队列中取消对应的任务
         }
         //同时在mInFlightRequests删除保存所有TAG匹配的Request
-        Iterator<Map.Entry<Integer, Request>> it = sInFlightRequests.entrySet().iterator();
+        Iterator<Map.Entry<Integer, Request<?>>> it = mInFlightRequests.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry<Integer, Request> entry = it.next();
+            Map.Entry<Integer, Request<?>> entry = it.next();
             Object rTag = entry.getValue().getTag();
             if (rTag != null && rTag.equals(tag)) {
                 it.remove();
@@ -136,41 +147,6 @@ public class HttpLoader {
         return mImageLoader;
     }
 
-    /**
-     * 从Map集合中构建一个get请求参数字符串
-     *
-     * @param param get请求map集合
-     * @return get请求的字符串结构
-     */
-    private String buildGetParam(Map<String, String> param) {
-
-        StringBuilder buffer = new StringBuilder();
-        if (param != null) {
-            buffer.append("?");
-            for (Map.Entry<String, String> entry : param.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                if (TextUtils.isEmpty(key) || TextUtils.isEmpty(value)) {
-                    continue;
-                }
-                try {
-                    buffer.append(URLEncoder.encode(key, "UTF-8"));
-                    buffer.append("=");
-                    buffer.append(URLEncoder.encode(value, "UTF-8"));
-                    buffer.append("&");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        }
-        String str = buffer.toString();
-        //去掉最后的&
-        if (str.length() > 1 && str.endsWith("&")) {
-            str = str.substring(0, str.length() - 1);
-        }
-        return str;
-    }
 
     /**
      * 发送GsonRequest请求
@@ -184,15 +160,15 @@ public class HttpLoader {
      * @param isCache     是否需要缓存本次响应的结果
      */
 
-    private Request request(int method, String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener, boolean isCache) {
-        Request request = sInFlightRequests.get(requestCode);
+    private Request<?> request(int method, String url, HttpParams params, Class<? extends IResponse> clazz, final int requestCode, final HttpListener listener, boolean isCache) {
+        Request request = mInFlightRequests.get(requestCode);
         if (request == null) {
             request = makeGsonRequest(method, url, params, clazz, requestCode, listener, isCache);
             //如果是GET请求，则首先尝试解析本地缓存供界面显示，然后再发起网络请求
             if (method == Request.Method.GET) {
                 tryLoadCacheResponse(request, requestCode, listener);
             }
-            ALog.d("Handle request by network!");
+            ALog.i("Handle request by network!");
             return addRequest(request, requestCode);
         } else {
             ALog.i("Hi guy,the request (RequestCode is " + requestCode + ")  is already in-flight , So Ignore!");
@@ -209,7 +185,7 @@ public class HttpLoader {
      * @param requestCode 请求码 每次请求对应一个code作为改Request的唯一标识
      * @param listener    处理响应的监听器
      */
-    public Request get(String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener) {
+    public Request<?> get(String url, HttpParams params, Class<? extends IResponse> clazz, final int requestCode, final HttpListener listener) {
         return request(Request.Method.GET, url, params, clazz, requestCode, listener, true);
     }
 
@@ -223,7 +199,7 @@ public class HttpLoader {
      * @param listener    处理响应的监听器
      * @param isCache     是否需要缓存本次响应的结果,没有网络时会使用本地缓存
      */
-    public Request get(String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener, boolean isCache) {
+    public Request<?> get(String url, HttpParams params, Class<? extends IResponse> clazz, final int requestCode, final HttpListener listener, boolean isCache) {
         return request(Request.Method.GET, url, params, clazz, requestCode, listener, isCache);
     }
 
@@ -236,7 +212,7 @@ public class HttpLoader {
      * @param requestCode 请求码 每次请求对应一个code作为改Request的唯一标识
      * @param listener    处理响应的监听器
      */
-    public Request post(String url, IReq params, Class<? extends IResp> clazz, final int requestCode, final HttpListener listener) {
+    public Request<?> post(String url, HttpParams params, Class<? extends IResponse> clazz, final int requestCode, final HttpListener listener) {
         return request(Request.Method.POST, url, params, clazz, requestCode, listener, false);//POST请求不缓存
     }
 
@@ -251,17 +227,17 @@ public class HttpLoader {
      * @param listener    监听器用来响应结果
      * @return 返回一个GsonRequest对象
      */
-    private GsonRequest makeGsonRequest(int method, String url, IReq params, Class<? extends IResp> clazz, int requestCode, HttpListener listener, boolean isCache) {
+    private GsonRequest<IResponse> makeGsonRequest(int method, String url, HttpParams params, Class<? extends IResponse> clazz, int requestCode, HttpListener listener, boolean isCache) {
         ResponseListener responseListener = new ResponseListener(requestCode, listener);
         Map<String, String> paramsMap = null;//默认为null
         if (params != null) {//如果有参数，则构建参数
             if (method == Request.Method.GET) {
-                url = url + buildGetParam(params.getParams());//如果是get请求，则把参数拼在url后面
+                url = url + params.toGetParams();//如果是get请求，则把参数拼在url后面
             } else {
                 paramsMap = params.getParams();//如果不是get请求，取出IReq中的Map参数集合。
             }
         }
-        GsonRequest request = new GsonRequest<>(method, url, paramsMap, clazz, responseListener, responseListener, isCache, mContext);
+        GsonRequest<IResponse> request = new GsonRequest<>(method, url, paramsMap, clazz, responseListener, responseListener, isCache, mContext);
         request.setRetryPolicy(new DefaultRetryPolicy());//设置超时时间，重试次数，重试因子（1,1*2,2*2,4*2）等
         return request;
     }
@@ -272,7 +248,7 @@ public class HttpLoader {
      * @param request 要寻找缓存的request
      */
     private void tryLoadCacheResponse(Request request, int requestCode, HttpListener listener) {
-        ALog.d("Try to  load cache response first !");
+        ALog.i("Try to  load cache response first !");
         if (listener != null && request != null) {
             try {
                 //获取缓存文件
@@ -283,10 +259,10 @@ public class HttpLoader {
                 if (request instanceof GsonRequest) {
                     //如果是GsonRequest，那么解析出本地缓存的json数据为GsonRequest
                     GsonRequest gr = (GsonRequest) request;
-                    IResp response = (IResp) gr.gson.fromJson(sw.toString(), gr.getClazz());
+                    IResponse response = (IResponse) gr.gson.fromJson(sw.toString(), gr.getClazz());
                     //传给onResponse，让前面的人用缓存数据
                     listener.onGetResponseSuccess(requestCode, response);
-                    ALog.d("Load cache response success !");
+                    ALog.i("Load cache response success !");
                 }
             } catch (Exception e) {
                 ALog.w("No cache response ! " + e.getMessage());
@@ -297,7 +273,7 @@ public class HttpLoader {
 
 
     /**
-     * 成功获取到服务器响应结果的监听，供UI层注册
+     * 成功获取到服务器响应结果的监听，供UI层注册.
      */
     public interface HttpListener {
         /**
@@ -306,7 +282,7 @@ public class HttpLoader {
          * @param requestCode response对应的requestCode
          * @param response    返回的response
          */
-        void onGetResponseSuccess(int requestCode, IResp response);
+        void onGetResponseSuccess(int requestCode, IResponse response);
 
         /**
          * 网络请求失败，做一些释放性的操作，比如关闭对话框
@@ -320,7 +296,7 @@ public class HttpLoader {
     /**
      * ResponseListener，封装了Volley错误和成功的回调监，并执行一些默认处理，同时会将事件通过HttpListener抛到UI层
      */
-    private class ResponseListener implements Response.ErrorListener, Response.Listener<IResp> {
+    private class ResponseListener implements Response.ErrorListener, Response.Listener<IResponse> {
 
         private HttpListener listener;
         private int requestCode;
@@ -335,7 +311,7 @@ public class HttpLoader {
         public void onErrorResponse(VolleyError error) {
             ALog.w("Request error from network!");
             error.printStackTrace();
-            sInFlightRequests.remove(requestCode);//请求错误，从正在飞的集合中删除该请求
+            mInFlightRequests.remove(requestCode);//请求错误，从正在飞的集合中删除该请求
             if (listener != null) {
                 listener.onGetResponseError(requestCode, error);
             }
@@ -344,12 +320,12 @@ public class HttpLoader {
 
 
         @Override
-        public void onResponse(IResp response) {
-            sInFlightRequests.remove(requestCode);//请求成功，从正在飞的集合中删除该请求
+        public void onResponse(IResponse response) {
+            mInFlightRequests.remove(requestCode);//请求成功，从正在飞的集合中删除该请求
             if (response != null) {
                 //执行通用处理，如果是服务器返回的ErrorResponse，直接提示错误信息并返回
-                if (response instanceof ErrorResp) {
-                    ErrorResp errorRes = (ErrorResp) response;
+                if (response instanceof ErrorResponse) {
+                    ErrorResponse errorRes = (ErrorResponse) response;
                     MyToast.show(mContext, errorRes.getErrorMsg());
                     return;
                 }

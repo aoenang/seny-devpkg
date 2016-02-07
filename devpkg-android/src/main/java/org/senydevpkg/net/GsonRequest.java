@@ -10,7 +10,7 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import org.senydevpkg.net.resp.ErrorResp;
+import org.senydevpkg.net.resp.ErrorResponse;
 import org.senydevpkg.utils.ALog;
 import org.senydevpkg.utils.MD5Utils;
 import org.springframework.util.Assert;
@@ -95,7 +95,7 @@ public class GsonRequest<T> extends Request<T> {
                     FileCopyUtils.copy(response.data, new File(mContext.getCacheDir(), "" + MD5Utils.encode(getUrl())));
                 }
             } catch (JsonSyntaxException e) {
-                result = (T) gson.fromJson(json, ErrorResp.class);//解析失败，按错误响应
+                result = (T) gson.fromJson(json, ErrorResponse.class);//解析失败，按错误响应
             } catch (ClassCastException e) {
                 e.printStackTrace();
             }
