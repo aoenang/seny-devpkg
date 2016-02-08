@@ -111,9 +111,9 @@ public class HttpLoader {
     private Request<?> addRequest(Request<?> request, int requestCode) {
         if (mRequestQueue != null && request != null) {
             mRequestQueue.add(request);
-            mInFlightRequests.put(requestCode, request);
+            mInFlightRequests.put(requestCode, request);//添加到正在处理请求中
         }
-        return request;//添加到正在处理请求中
+        return request;
 
     }
 
