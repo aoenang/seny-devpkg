@@ -2,6 +2,7 @@ package org.seny.android.sample;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
@@ -15,6 +16,7 @@ import org.senydevpkg.net.HttpLoader;
 import org.senydevpkg.net.HttpParams;
 import org.senydevpkg.net.resp.IResponse;
 import org.senydevpkg.utils.MyToast;
+import org.senydevpkg.view.LoadStateLayout;
 
 import java.util.Date;
 
@@ -24,7 +26,8 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
     private static final int REQUEST_CODE_WEATHER = 0x01;
     private static final String API = "http://mobile.weather.com.cn/data/zsM/101010100.html";
     protected HttpLoader HL;
-    protected TextView mTvResult;
+    protected LoadStateLayout mPager;
+    private TextView mContentView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,8 +36,15 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
         findViewById(R.id.btn_gson_request).setOnClickListener(this);
         findViewById(R.id.btn_string_request).setOnClickListener(this);
 
-        mTvResult = (TextView) findViewById(R.id.tv_result);
+        mPager = (LoadStateLayout) findViewById(R.id.lp_result);
+        mPager.setEmptyView(R.layout.layout_loadpager_state_empty);
+        mPager.setErrorView(R.layout.layout_loadpager_state_error);
+        mPager.setContentView(R.layout.layout_loadpager_state_content);
+        mPager.setLoadingView(R.layout.layout_loadpager_state_loading);
+
+        mContentView = (TextView) findViewById(R.id.tv_content);
         HL = HttpLoader.getInstance(this);
+
 
     }
 
@@ -58,18 +68,25 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
                 Request<?> strRequest = new StringRequest(API + strParams.toGetParams(), new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        mTvResult.setText(response);
+                        if (TextUtils.isEmpty(response)) {
+                            mPager.setState(LoadStateLayout.STATE_EMPTY);
+                        } else {
+                            mPager.setState(LoadStateLayout.STATE_SUCCESS);
+                            mContentView.setText(response);
+                        }
 
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        mTvResult.setText(error.getMessage());
+                        mPager.setState(LoadStateLayout.STATE_ERROR);
                     }
                 }).setTag(this);
                 HL.addRequest(strRequest);
                 break;
         }
+        //设置为加载状态视图
+        mPager.setState(LoadStateLayout.STATE_LOADING);
     }
 
     @Override
@@ -80,8 +97,12 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
 
                 //根据请求码，处理对应结果
                 WeatherResponse resp = (WeatherResponse) response;
-
-                mTvResult.setText(resp.toString());
+                if (TextUtils.isEmpty(resp.toString())) {
+                    mPager.setState(LoadStateLayout.STATE_EMPTY);
+                } else {
+                    mPager.setState(LoadStateLayout.STATE_SUCCESS);
+                    mContentView.setText(resp.toString());
+                }
                 break;
 
         }
@@ -91,6 +112,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
     public void onGetResponseError(int requestCode, VolleyError error) {
 
         MyToast.show(this, "Request " + requestCode + " error , msg : " + error.getMessage());
+        mPager.setState(LoadStateLayout.STATE_ERROR);
     }
 
     @Override

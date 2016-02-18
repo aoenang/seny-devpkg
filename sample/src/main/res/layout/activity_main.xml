@@ -14,9 +14,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="StringRequest" />
-    <TextView
+    <org.senydevpkg.view.LoadStateLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:id="@+id/tv_result" />
+        android:id="@+id/lp_result" />
+
 </LinearLayout>
