@@ -30,39 +30,48 @@ public class WeatherResponse implements IResponse {
 
 
     /**
-     * date : 20131012
-     * zs : [{"name":"空调开启指数","hint":"较少开启","des":"您将感到很舒适，一般不需要开启空调。"},{"name":"息斯敏过敏指数","hint":"不易发","des":"天气条件不易诱发过敏，可放心外出，除特殊体质外，无需担心过敏问题。"},{"name":"晨练指数","hint":"适宜","des":"天气不错，空气清新，是您晨练的大好时机，建议不同年龄段的人们积极参加户外健身活动。"},{"name":"旅游指数","hint":"适宜","des":"天气较好，但丝毫不会影响您出行的心情。温度适宜又有微风相伴，适宜旅游。"},{"name":"紫外线强度指数","hint":"弱","des":"紫外线强度较弱，建议出门前涂擦SPF在12-15之间、PA+的防晒护肤品。"}]
+     * errno : 0
+     * data : {"weather":[{"time":"周一(实时：8℃)","weather":"晴","temperature":"8 ~ -4℃","date":"2016-02-22","pm25":{"value":"","level":"","levelnum":""}},{"time":"周二","weather":"晴","temperature":"4 ~ -6℃","date":"2016-02-23"},{"time":"周三","weather":"晴转多云","temperature":"7 ~ -4℃","date":"2016-02-24"}],"image":"http://f.hiphotos.baidu.com/news/pic/item/a1ec08fa513d2697d296987357fbb2fb4316d853.jpg"}
      */
 
-    public String date;
+    public int errno;
     /**
-     * name : 空调开启指数
-     * hint : 较少开启
-     * des : 您将感到很舒适，一般不需要开启空调。
+     * weather : [{"time":"周一(实时：8℃)","weather":"晴","temperature":"8 ~ -4℃","date":"2016-02-22","pm25":{"value":"","level":"","levelnum":""}},{"time":"周二","weather":"晴","temperature":"4 ~ -6℃","date":"2016-02-23"},{"time":"周三","weather":"晴转多云","temperature":"7 ~ -4℃","date":"2016-02-24"}]
+     * image : http://f.hiphotos.baidu.com/news/pic/item/a1ec08fa513d2697d296987357fbb2fb4316d853.jpg
      */
 
-    public List<ZsEntity> zs;
+    public DataEntity data;
 
-    @Override
-    public String toString() {
-        return "WeatherResponse{" +
-                "date='" + date + '\'' +
-                ", zs=" + zs +
-                '}';
-    }
+    public static class DataEntity {
+        public String image;
+        /**
+         * time : 周一(实时：8℃)
+         * weather : 晴
+         * temperature : 8 ~ -4℃
+         * date : 2016-02-22
+         * pm25 : {"value":"","level":"","levelnum":""}
+         */
 
-    public static class ZsEntity {
-        public String name;
-        public String hint;
-        public String des;
+        public List<WeatherEntity> weather;
 
-        @Override
-        public String toString() {
-            return "ZsEntity{" +
-                    "name='" + name + '\'' +
-                    ", hint='" + hint + '\'' +
-                    ", des='" + des + '\'' +
-                    '}';
+        public static class WeatherEntity {
+            public String time;
+            public String weather;
+            public String temperature;
+            public String date;
+            /**
+             * value :
+             * level :
+             * levelnum :
+             */
+
+            public Pm25Entity pm25;
+
+            public static class Pm25Entity {
+                public String value;
+                public String level;
+                public String levelnum;
+            }
         }
     }
 }

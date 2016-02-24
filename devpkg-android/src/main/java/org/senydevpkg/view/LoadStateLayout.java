@@ -206,7 +206,7 @@ public class LoadStateLayout extends FrameLayout {
     }
 
     /**
-     * 添加state view,初始隐藏
+     * 添加state rootView,初始隐藏
      *
      * @param view
      */
