@@ -43,7 +43,6 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
         mPager = (LoadStateLayout) findViewById(R.id.lp_result);
         mPager.setEmptyView(R.layout.layout_loadpager_state_empty);
         mPager.setErrorView(R.layout.layout_loadpager_state_error);
-        mPager.setContentView(R.layout.layout_loadpager_state_content);
         mPager.setLoadingView(R.layout.layout_loadpager_state_loading);
 
         mContentView = (ListView) findViewById(R.id.lv_content);

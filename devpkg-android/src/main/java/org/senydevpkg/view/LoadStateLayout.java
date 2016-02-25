@@ -60,6 +60,18 @@ public class LoadStateLayout extends FrameLayout {
         mInflater = LayoutInflater.from(getContext());
     }
 
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+        if (getChildCount() > 1) {
+            throw new IllegalStateException("LoadStateLayout can host only one content child for STATE_SUCCESS!");
+
+        }
+        mContentView = getChildAt(0);//获取第0个子View，并设置为ContentView
+        mContentView.setVisibility(GONE);//默认隐藏
+    }
+
+
     /**
      * 获取当前视图状态
      *
@@ -82,7 +94,7 @@ public class LoadStateLayout extends FrameLayout {
             case STATE_SUCCESS:
             case STATE_ERROR:
                 mState = state;
-                updateViewState(state);
+                updateViewState();
                 break;
             default:
                 throw new IllegalArgumentException("must be one of STATE_LOADING,STATE_EMPTY,STATE_SUCCESS,STATE_ERROR !");
@@ -104,8 +116,7 @@ public class LoadStateLayout extends FrameLayout {
      * @param layoutResId
      */
     public void setEmptyView(int layoutResId) {
-        mEmptyView = mInflater.inflate(layoutResId, this, false);
-        addStateView(mEmptyView);
+        setEmptyView(mInflater.inflate(layoutResId, this, false));
     }
 
     /**
@@ -114,8 +125,10 @@ public class LoadStateLayout extends FrameLayout {
      * @param view
      */
     public void setEmptyView(View view) {
+        removeView(mEmptyView);
         mEmptyView = view;
-        addStateView(mEmptyView);
+        addStateView(view);
+        updateViewState();
     }
 
     /**
@@ -133,8 +146,7 @@ public class LoadStateLayout extends FrameLayout {
      * @param layoutResId
      */
     public void setErrorView(int layoutResId) {
-        mErrorView = mInflater.inflate(layoutResId, this, false);
-        addStateView(mErrorView);
+        setErrorView(mInflater.inflate(layoutResId, this, false));
     }
 
     /**
@@ -143,8 +155,10 @@ public class LoadStateLayout extends FrameLayout {
      * @param view
      */
     public void setErrorView(View view) {
+        removeView(mErrorView);
         mErrorView = view;
-        addStateView(mErrorView);
+        addStateView(view);
+        updateViewState();
     }
 
     /**
@@ -156,25 +170,6 @@ public class LoadStateLayout extends FrameLayout {
         return mContentView;
     }
 
-    /**
-     * 设置加载成功时显示数据的布局id
-     *
-     * @param layoutResId
-     */
-    public void setContentView(int layoutResId) {
-        mContentView = mInflater.inflate(layoutResId, this, false);
-        addStateView(mContentView);
-    }
-
-    /**
-     * 设置加载成功时显示数据的View
-     *
-     * @param view
-     */
-    public void setContentView(View view) {
-        mContentView = view;
-        addStateView(mContentView);
-    }
 
     /**
      * 获取加载时显示的View
@@ -191,8 +186,7 @@ public class LoadStateLayout extends FrameLayout {
      * @param layoutResId
      */
     public void setLoadingView(int layoutResId) {
-        mLoadingView = mInflater.inflate(layoutResId, this, false);
-        addStateView(mLoadingView);
+        setLoadingView(mInflater.inflate(layoutResId, this, false));
     }
 
     /**
@@ -201,8 +195,10 @@ public class LoadStateLayout extends FrameLayout {
      * @param view
      */
     public void setLoadingView(View view) {
+        removeView(mLoadingView);
         mLoadingView = view;
-        addStateView(mLoadingView);
+        addStateView(view);
+        updateViewState();
     }
 
     /**
@@ -225,10 +221,8 @@ public class LoadStateLayout extends FrameLayout {
 
     /**
      * 根据当前状态，显示对应的View
-     *
-     * @param state
      */
-    private void updateViewState(int state) {
+    private void updateViewState() {
         if (mLoadingView != null) {
             mLoadingView.setVisibility(mState == STATE_LOADING ? VISIBLE : GONE);
 

@@ -41,7 +41,8 @@ public abstract class AbsBaseAdapter<T> extends BaseAdapter {
     /**
      * 接收AbsListView要显示的数据
      *
-     * @param data 要显示的数据
+     * @param context 上下文
+     * @param data    要显示的数据
      */
     public AbsBaseAdapter(Context context, List<T> data) {
         mContext = context;
