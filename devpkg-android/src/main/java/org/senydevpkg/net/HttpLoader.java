@@ -10,11 +10,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 
-import org.senydevpkg.net.resp.ErrorResponse;
 import org.senydevpkg.net.resp.IResponse;
 import org.senydevpkg.utils.ALog;
 import org.senydevpkg.utils.MD5Utils;
-import org.senydevpkg.utils.MyToast;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -323,12 +321,6 @@ public class HttpLoader {
         public void onResponse(IResponse response) {
             mInFlightRequests.remove(requestCode);//请求成功，从正在飞的集合中删除该请求
             if (response != null) {
-                //执行通用处理，如果是服务器返回的ErrorResponse，直接提示错误信息并返回
-                if (response instanceof ErrorResponse) {
-                    ErrorResponse errorRes = (ErrorResponse) response;
-                    MyToast.show(mContext, errorRes.getErrorMsg());
-                    return;
-                }
 
                 ALog.i("Request success from network!");
                 if (listener != null) {
