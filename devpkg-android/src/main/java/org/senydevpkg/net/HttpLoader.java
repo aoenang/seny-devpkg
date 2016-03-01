@@ -1,6 +1,7 @@
 package org.senydevpkg.net;
 
 import android.content.Context;
+import android.widget.ImageView;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -137,14 +138,25 @@ public class HttpLoader {
     }
 
     /**
-     * 获取一个ImageLoader对象用于加载图片
+     * 请求网络图片并设置给ImageView
      *
-     * @return
+     * @param view       The imageView
+     * @param requestUrl The URL of the image to be loaded.
      */
-    public ImageLoader getImageLoader() {
-        return mImageLoader;
+    public void display(ImageView view, String requestUrl) {
+        display(view, requestUrl, 0, 0);
     }
 
+    /**
+     * 请求网络图片并设置给ImageView，可以设置默认显示图片和加载错误显示图片
+     *
+     * @param view              The imageView
+     * @param defaultImageResId Default image resource ID to use, or 0 if it doesn't exist.
+     * @param errorImageResId   Error image resource ID to use, or 0 if it doesn't exist.
+     */
+    public void display(ImageView view, String requestUrl, int defaultImageResId, int errorImageResId) {
+        mImageLoader.get(requestUrl, ImageLoader.getImageListener(view, defaultImageResId, errorImageResId));
+    }
 
     /**
      * 发送GsonRequest请求
