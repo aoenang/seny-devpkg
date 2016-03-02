@@ -85,16 +85,11 @@ public class GsonRequest<T> extends Request<T> {
                     HttpHeaderParser.parseCharset(response.headers));
             ALog.d("" + json);
 
-            T result = null;
-            try {
-                result = gson.fromJson(json, mClazz);//按正常响应解析
-                if (mIsCache) {
-                    //如果解析成功，并且需要缓存则将json字符串缓存到本地
-                    ALog.i("Save response to local!");
-                    FileCopyUtils.copy(response.data, new File(mContext.getCacheDir(), "" + MD5Utils.encode(getUrl())));
-                }
-            } catch (ClassCastException e) {
-                e.printStackTrace();
+            T result = gson.fromJson(json, mClazz);//按正常响应解析
+            if (mIsCache) {
+                //如果解析成功，并且需要缓存则将json字符串缓存到本地
+                ALog.i("Save response to local!");
+                FileCopyUtils.copy(response.data, new File(mContext.getCacheDir(), "" + MD5Utils.encode(getUrl())));
             }
             return Response.success(
                     result,

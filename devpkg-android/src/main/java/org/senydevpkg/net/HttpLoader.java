@@ -333,7 +333,6 @@ public class HttpLoader {
         public void onResponse(IResponse response) {
             mInFlightRequests.remove(requestCode);//请求成功，从正在飞的集合中删除该请求
             if (response != null) {
-
                 ALog.i("Request success from network!");
                 if (listener != null) {
                     listener.onGetResponseSuccess(requestCode, response);
