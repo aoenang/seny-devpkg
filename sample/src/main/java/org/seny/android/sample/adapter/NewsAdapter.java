@@ -30,50 +30,54 @@ import android.widget.TextView;
 import org.seny.android.sample.R;
 import org.seny.android.sample.resp.NewsResponse;
 import org.senydevpkg.base.AbsBaseAdapter;
+import org.senydevpkg.base.BaseHolder;
 
 import java.util.List;
 
 public class NewsAdapter extends AbsBaseAdapter<NewsResponse.DataEntity.TagEntity> {
 
+    private final Context mContext;
+
     public NewsAdapter(Context context, List<NewsResponse.DataEntity.TagEntity> data) {
-        super(context, data);
+        super(data);
+        mContext = context;
     }
 
 
     @Override
-    protected ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View inflate = View.inflate(getContext(), R.layout.item_weather, null);
-        return new NewsViewHolder(inflate);
+    protected BaseHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+        return new NewsViewHolder(mContext);
     }
 
-    @Override
-    protected void onBindViewHolder(ViewHolder holder, int position) {
 
-        NewsViewHolder mvh = (NewsViewHolder) holder;
-        NewsResponse.DataEntity.TagEntity data = getItem(position);
-        mvh.tv_text1.setText(data.name);
-        mvh.tv_text2.setText(data.type);
-        mvh.tv_text3.setText(String.valueOf(data.count));
-    }
-
-    class NewsViewHolder extends ViewHolder {
+    static class NewsViewHolder extends BaseHolder<NewsResponse.DataEntity.TagEntity> {
 
         public TextView tv_text1;
         public TextView tv_text2;
         public TextView tv_text3;
 
-        /**
-         * 传入 root view，将自动绑定TAG
-         *
-         * @param view root view
-         */
-        public NewsViewHolder(View view) {
-            super(view);
+        public NewsViewHolder(Context context) {
+            super(context);
+        }
+
+
+        @Override
+        protected View initView() {
+            View view = View.inflate(getContext(), R.layout.item_weather, null);
             tv_text1 = (TextView) view.findViewById(R.id.tv_text1);
             tv_text2 = (TextView) view.findViewById(R.id.tv_text2);
             tv_text3 = (TextView) view.findViewById(R.id.tv_text3);
+            return view;
         }
 
+
+        @Override
+        public void bindData(NewsResponse.DataEntity.TagEntity data) {
+            tv_text1.setText(data.name);
+            tv_text2.setText(data.type);
+            tv_text3.setText(String.valueOf(data.count));
+        }
     }
 }
 

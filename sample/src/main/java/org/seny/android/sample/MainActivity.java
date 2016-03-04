@@ -13,6 +13,7 @@ import org.seny.android.sample.protocol.NewsProtocol;
 import org.seny.android.sample.protocol.WeatherProtocol;
 import org.seny.android.sample.resp.NewsResponse;
 import org.seny.android.sample.resp.WeatherResponse;
+import org.senydevpkg.base.AbsBaseAdapter;
 import org.senydevpkg.net.HttpLoader;
 import org.senydevpkg.net.resp.IResponse;
 import org.senydevpkg.utils.MyToast;
@@ -26,6 +27,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
     protected LoadStateLayout mPager;
     protected WeatherAdapter mWeatherAdapter;
     protected NewsAdapter mNewsAdapter;
+    protected AbsBaseAdapter mCurrentAdapter;
     private ListView mContentView;
 
     @Override
@@ -45,7 +47,9 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
         mPager.setErrorView(R.layout.layout_loadpager_state_error);
         mPager.setLoadingView(R.layout.layout_loadpager_state_loading);
 
+        mPager.setState(LoadStateLayout.STATE_EMPTY);
         mContentView = (ListView) findViewById(R.id.lv_content);
+
     }
 
     @Override
@@ -76,10 +80,15 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
                     mPager.setState(LoadStateLayout.STATE_EMPTY);
                 } else {
                     mPager.setState(LoadStateLayout.STATE_SUCCESS);
+
                     //设置数据
                     if (mWeatherAdapter == null) {
                         mWeatherAdapter = new WeatherAdapter(getApplication(), resp.data.weather);
+
+                    }
+                    if (mCurrentAdapter != mWeatherAdapter) {
                         mContentView.setAdapter(mWeatherAdapter);
+                        mCurrentAdapter = mWeatherAdapter;
                     } else {
                         //更新数据
                         mWeatherAdapter.notifyDataSetChanged(resp.data.weather);
@@ -97,7 +106,10 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
                     //设置数据
                     if (mNewsAdapter == null) {
                         mNewsAdapter = new NewsAdapter(getApplicationContext(), newsResponse.data.tag);
+                    }
+                    if (mCurrentAdapter != mNewsAdapter) {
                         mContentView.setAdapter(mNewsAdapter);
+                        mCurrentAdapter = mNewsAdapter;
                     } else {
                         //更新数据
                         mNewsAdapter.notifyDataSetChanged(newsResponse.data.tag);

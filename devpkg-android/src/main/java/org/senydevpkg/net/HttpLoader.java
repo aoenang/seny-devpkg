@@ -50,6 +50,10 @@ import java.util.Map;
  */
 public class HttpLoader {
 
+    /**
+     * 保存ImageView上正在发起的网络请求
+     */
+    private static final Map<ImageView, ImageLoader.ImageContainer> sImageContainers = new HashMap<>();
     private static HttpLoader sInstance;
     /**
      * 过滤重复请求。保存当前正在消息队列中执行的Request.key为对应的requestCode.
@@ -151,11 +155,48 @@ public class HttpLoader {
      * 请求网络图片并设置给ImageView，可以设置默认显示图片和加载错误显示图片
      *
      * @param view              The imageView
+     * @param requestUrl        The image url to request
      * @param defaultImageResId Default image resource ID to use, or 0 if it doesn't exist.
      * @param errorImageResId   Error image resource ID to use, or 0 if it doesn't exist.
      */
     public void display(ImageView view, String requestUrl, int defaultImageResId, int errorImageResId) {
-        mImageLoader.get(requestUrl, ImageLoader.getImageListener(view, defaultImageResId, errorImageResId));
+        display(view, requestUrl, defaultImageResId, errorImageResId, view.getWidth(), view.getHeight(), ImageView.ScaleType.FIT_XY);
+    }
+
+    /**
+     * 发起图片网络请求
+     *
+     * @param requestUrl The url of the remote image
+     * @param maxWidth   The maximum width of the returned image.
+     * @param maxHeight  The maximum height of the returned image.
+     * @param scaleType  The ImageViews ScaleType used to calculate the needed image size.
+     * @return A container object that contains all of the properties of the request, as well as
+     * the currently available image (default if remote is not loaded).
+     */
+    public void display(final ImageView view, String requestUrl, final int defaultImageResId, final int errorImageResId, int maxWidth, int maxHeight, ImageView.ScaleType scaleType) {
+        if (sImageContainers.containsKey(view)) {//如果已经在给该View请求一张网络图片
+            sImageContainers.get(view).cancelRequest();//那么就把之前的取消掉，保证一个ImageView身上只有一个任务。
+        }
+        ImageLoader.ImageContainer imageContainer = mImageLoader.get(requestUrl, new ImageLoader.ImageListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (errorImageResId != 0) {
+                    view.setImageResource(errorImageResId);
+                }
+                sImageContainers.remove(view);//请求失败，移除
+            }
+
+            @Override
+            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                if (response.getBitmap() != null) {
+                    view.setImageBitmap(response.getBitmap());
+                    sImageContainers.remove(view);//请求成功，移除
+                } else if (defaultImageResId != 0) {
+                    view.setImageResource(defaultImageResId);
+                }
+            }
+        }, maxWidth, maxHeight, scaleType);
+        sImageContainers.put(view, imageContainer);//将View身上的请求任务进行保存
     }
 
     /**
@@ -244,7 +285,7 @@ public class HttpLoader {
             if (method == Request.Method.GET) {
                 url = url + params.toGetParams();//如果是get请求，则把参数拼在url后面
             } else {
-                paramsMap = params.getParams();//如果不是get请求，取出IReq中的Map参数集合。
+                paramsMap = params.getParams();//如果不是get请求，取出HttpParams中的Map参数集合。
             }
         }
         GsonRequest<IResponse> request = new GsonRequest<>(method, url, paramsMap, clazz, responseListener, responseListener, isCache, mContext);
