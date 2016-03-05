@@ -142,6 +142,15 @@ public class HttpLoader {
     }
 
     /**
+     * 返回已初始化过的ImageLoader类。
+     *
+     * @return ImageLoader 对象
+     */
+    public ImageLoader getImageLoader() {
+        return mImageLoader;
+    }
+
+    /**
      * 请求网络图片并设置给ImageView
      *
      * @param view       The imageView
@@ -212,6 +221,7 @@ public class HttpLoader {
      */
 
     private Request<?> request(int method, String url, HttpParams params, Class<? extends IResponse> clazz, final int requestCode, final HttpListener listener, boolean isCache) {
+        ALog.d("Request URL:" + url);
         Request request = mInFlightRequests.get(requestCode);
         if (request == null) {
             request = makeGsonRequest(method, url, params, clazz, requestCode, listener, isCache);

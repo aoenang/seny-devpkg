@@ -83,7 +83,7 @@ public class GsonRequest<T> extends Request<T> {
             String json = new String(
                     response.data,
                     HttpHeaderParser.parseCharset(response.headers));
-            ALog.d("" + json);
+            ALog.d(json);
 
             T result = gson.fromJson(json, mClazz);//按正常响应解析
             if (mIsCache) {
