@@ -1,5 +1,6 @@
 package org.senydevpkg.net;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.widget.ImageView;
 
@@ -53,7 +54,7 @@ public class HttpLoader {
     /**
      * 保存ImageView上正在发起的网络请求
      */
-    private static final Map<ImageView, ImageLoader.ImageContainer> sImageContainers = new HashMap<>();
+    private final Map<ImageView, ImageLoader.ImageContainer> mImageContainers = new HashMap<>();
     private static HttpLoader sInstance;
     /**
      * 过滤重复请求。保存当前正在消息队列中执行的Request.key为对应的requestCode.
@@ -183,29 +184,31 @@ public class HttpLoader {
      * the currently available image (default if remote is not loaded).
      */
     public void display(final ImageView view, String requestUrl, final int defaultImageResId, final int errorImageResId, int maxWidth, int maxHeight, ImageView.ScaleType scaleType) {
-        if (sImageContainers.containsKey(view)) {//如果已经在给该View请求一张网络图片
-            sImageContainers.get(view).cancelRequest();//那么就把之前的取消掉，保证一个ImageView身上只有一个任务。
+        if (mImageContainers.containsKey(view)) {//如果已经在给该View请求一张网络图片
+            mImageContainers.get(view).cancelRequest();//那么就把之前的取消掉，保证一个ImageView身上只有一个任务。
         }
         ImageLoader.ImageContainer imageContainer = mImageLoader.get(requestUrl, new ImageLoader.ImageListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 if (errorImageResId != 0) {
                     view.setImageResource(errorImageResId);
+                    ObjectAnimator.ofFloat(view, "alpha", 0f, 1f).setDuration(800).start();//渐变动画
                 }
-                sImageContainers.remove(view);//请求失败，移除
+                mImageContainers.remove(view);//请求失败，移除
             }
 
             @Override
-            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+            public void onResponse(final ImageLoader.ImageContainer response, boolean isImmediate) {
                 if (response.getBitmap() != null) {
                     view.setImageBitmap(response.getBitmap());
-                    sImageContainers.remove(view);//请求成功，移除
+                    ObjectAnimator.ofFloat(view, "alpha", 0f, 1f).setDuration(800).start();//渐变动画
+                    mImageContainers.remove(view);//请求成功，移除
                 } else if (defaultImageResId != 0) {
                     view.setImageResource(defaultImageResId);
                 }
             }
         }, maxWidth, maxHeight, scaleType);
-        sImageContainers.put(view, imageContainer);//将View身上的请求任务进行保存
+        mImageContainers.put(view, imageContainer);//将View身上的请求任务进行保存
     }
 
     /**
