@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,10 +29,14 @@ import java.util.Map;
  * <p/>
  * Created by Seny on 2016/1/17.
  * 请求参数的封装。可以是get，也可以是post
+ *
+ * Modify by xiongmc on 2016/06/09
+ * 添加请求头的封装
  */
 public class HttpParams {
 
     private final Map<String, String> mParams = new HashMap<>();
+    private Map<String, String> mHeaders = Collections.emptyMap();
 
     /**
      * 获取某个key对应的value
@@ -99,5 +104,13 @@ public class HttpParams {
      */
     public Map<String, String> getParams() {
         return mParams;
+    }
+
+    public void addHeader(Map<String, String> headers) {
+        mHeaders = headers;
+    }
+
+    public Map<String, String> getHeaders() {
+        return mHeaders;
     }
 }

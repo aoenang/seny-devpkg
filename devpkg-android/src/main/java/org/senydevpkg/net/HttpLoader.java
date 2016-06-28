@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.widget.ImageView;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -21,6 +22,7 @@ import org.springframework.util.FileCopyUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.io.StringWriter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -118,7 +120,6 @@ public class HttpLoader {
             mInFlightRequests.put(requestCode, request);//添加到正在处理请求中
         }
         return request;
-
     }
 
     /**
@@ -294,14 +295,17 @@ public class HttpLoader {
     private GsonRequest<IResponse> makeGsonRequest(int method, String url, HttpParams params, Class<? extends IResponse> clazz, int requestCode, HttpListener listener, boolean isCache) {
         ResponseListener responseListener = new ResponseListener(requestCode, listener);
         Map<String, String> paramsMap = null;//默认为null
+        Map<String, String> headersMap = Collections.EMPTY_MAP;
         if (params != null) {//如果有参数，则构建参数
             if (method == Request.Method.GET) {
                 url = url + params.toGetParams();//如果是get请求，则把参数拼在url后面
             } else {
                 paramsMap = params.getParams();//如果不是get请求，取出HttpParams中的Map参数集合。
             }
+            headersMap = params.getHeaders();
         }
-        GsonRequest<IResponse> request = new GsonRequest<>(method, url, paramsMap, clazz, responseListener, responseListener, isCache, mContext);
+        GsonRequest<IResponse> request = new GsonRequest<>(method, url, paramsMap, headersMap,
+                clazz, responseListener, responseListener, isCache, mContext);
         request.setRetryPolicy(new DefaultRetryPolicy());//设置超时时间，重试次数，重试因子（1,1*2,2*2,4*2）等
         return request;
     }
