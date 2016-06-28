@@ -9,8 +9,6 @@ import com.android.volley.VolleyError;
 
 import org.seny.android.sample.adapter.NewsAdapter;
 import org.seny.android.sample.adapter.WeatherAdapter;
-import org.seny.android.sample.protocol.NewsProtocol;
-import org.seny.android.sample.protocol.WeatherProtocol;
 import org.seny.android.sample.resp.NewsResponse;
 import org.seny.android.sample.resp.WeatherResponse;
 import org.senydevpkg.base.AbsBaseAdapter;
@@ -23,7 +21,7 @@ import org.senydevpkg.view.LoadStateLayout;
 public class MainActivity extends Activity implements View.OnClickListener, HttpLoader.HttpListener {
 
 
-    protected HttpLoader HL;
+    public Api API;
     protected LoadStateLayout mPager;
     protected WeatherAdapter mWeatherAdapter;
     protected NewsAdapter mNewsAdapter;
@@ -35,7 +33,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-        HL = HttpLoader.getInstance(this);
+        API = Api.getInstance(this);
     }
 
     private void initView() {
@@ -57,11 +55,11 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
         switch (v.getId()) {
             case R.id.btn_request_get:
                 //发起Get天气请求
-                new WeatherProtocol().doRequest(HL, this).setTag(this);
+                API.getWeather("北京", this, this);
                 break;
             case R.id.btn_request_post:
                 //发起Post请求
-                new NewsProtocol().doRequest(HL, this).setTag(this);
+                API.postNews(this, this);
                 break;
         }
         //设置为加载状态视图
@@ -131,8 +129,8 @@ public class MainActivity extends Activity implements View.OnClickListener, Http
     @Override
     protected void onStop() {
         super.onStop();
-        if (HL != null) {
-            HL.cancelRequest(this);//取消所有当前activity中发出的请求
+        if (API != null) {
+            API.cancelRequest(this);//取消所有当前activity中发出的请求
         }
     }
 

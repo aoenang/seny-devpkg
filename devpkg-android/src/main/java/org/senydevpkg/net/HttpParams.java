@@ -25,22 +25,31 @@ import java.util.Map;
  * 　　　　　┃┫┫　┃┫┫
  * 　　　　　┗┻┛　┗┻┛
  * ━━━━ bug with the XYY protecting━━━
- * <p/>
- * Created by Seny on 2016/1/17.
- * 请求参数的封装。可以是get，也可以是post
+ * <p>
+ * Created by Seny on 2016/1/17.<p/>
+ * 1. http request 参数的封装。可以是get，也可以是post
+ * <p>
+ * 2. http header参数的封装
  */
 public class HttpParams {
 
-    private final Map<String, String> mParams = new HashMap<>();
+    /**
+     * 封装http request params
+     */
+    private final Map<String, String> mRequestParams = new HashMap<>();
+    /**
+     * 封装http headers
+     */
+    private final Map<String, String> mHeaderParams = new HashMap<>();
 
     /**
-     * 获取某个key对应的value
+     * 获取request params中某个key对应的value
      *
      * @return 返回某个key对应的value
      */
     public String get(String key) {
 
-        return mParams.get(key);
+        return mRequestParams.get(key);
     }
 
 
@@ -52,7 +61,31 @@ public class HttpParams {
      * @return 返回HttpParams本身，便于链式编程
      */
     public HttpParams put(String key, String value) {
-        mParams.put(key, value);
+        mRequestParams.put(key, value);
+        return this;
+    }
+
+
+    /**
+     * 获取request params中某个key对应的value
+     *
+     * @return 返回某个key对应的value
+     */
+    public String getHeader(String key) {
+
+        return mHeaderParams.get(key);
+    }
+
+
+    /**
+     * 设置一个key=value的http 参数
+     *
+     * @param key   参数的key
+     * @param value 参数的value
+     * @return 返回HttpParams本身，便于链式编程
+     */
+    public HttpParams addHeader(String key, String value) {
+        mHeaderParams.put(key, value);
         return this;
     }
 
@@ -64,9 +97,9 @@ public class HttpParams {
     public String toGetParams() {
 
         StringBuilder buffer = new StringBuilder();
-        if (!mParams.isEmpty()) {
+        if (!mRequestParams.isEmpty()) {
             buffer.append("?");
-            for (Map.Entry<String, String> entry : mParams.entrySet()) {
+            for (Map.Entry<String, String> entry : mRequestParams.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
                 if (TextUtils.isEmpty(key) || TextUtils.isEmpty(value)) {
@@ -93,11 +126,20 @@ public class HttpParams {
 
 
     /**
-     * 返回封装了http params的Map集合
+     * 返回封装了http request params的Map集合
      *
      * @return
      */
     public Map<String, String> getParams() {
-        return mParams;
+        return mRequestParams;
+    }
+
+    /**
+     * 返回封装了http headers的Map集合
+     *
+     * @return
+     */
+    public Map<String, String> getHeaders() {
+        return mHeaderParams;
     }
 }

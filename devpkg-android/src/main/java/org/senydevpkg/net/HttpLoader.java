@@ -44,18 +44,18 @@ import java.util.Map;
  * 　　　　　┃┫┫　┃┫┫
  * 　　　　　┗┻┛　┗┻┛
  * ━━━━ bug with the XYY protecting━━━
- * <p/>
+ * <p>
  * Created by Seny on 2015/12/1.
- * <p/>
+ * <p>
  * 网络请求核心类。负责封装get，post请求(GsonRequest)，支持添加自定义Request。初始化RequestQueue及ImageLoader
  */
 public class HttpLoader {
 
+    private static HttpLoader sInstance;
     /**
      * 保存ImageView上正在发起的网络请求
      */
     private final Map<ImageView, ImageLoader.ImageContainer> mImageContainers = new HashMap<>();
-    private static HttpLoader sInstance;
     /**
      * 过滤重复请求。保存当前正在消息队列中执行的Request.key为对应的requestCode.
      */
@@ -91,6 +91,7 @@ public class HttpLoader {
         }
         return sInstance;
     }
+
 
     /**
      * 添加一个请求到请求队列.支持任意Request
@@ -291,17 +292,19 @@ public class HttpLoader {
      * @param listener    监听器用来响应结果
      * @return 返回一个GsonRequest对象
      */
-    private GsonRequest<IResponse> makeGsonRequest(int method, String url, HttpParams params, Class<? extends IResponse> clazz, int requestCode, HttpListener listener, boolean isCache) {
+    private GsonRequest<IResponse> makeGsonRequest(int method, String url, final HttpParams params, Class<? extends IResponse> clazz, int requestCode, HttpListener listener, boolean isCache) {
         ResponseListener responseListener = new ResponseListener(requestCode, listener);
         Map<String, String> paramsMap = null;//默认为null
+        Map<String, String> headerMap = null;//默认为null
         if (params != null) {//如果有参数，则构建参数
             if (method == Request.Method.GET) {
                 url = url + params.toGetParams();//如果是get请求，则把参数拼在url后面
             } else {
                 paramsMap = params.getParams();//如果不是get请求，取出HttpParams中的Map参数集合。
             }
+            headerMap = params.getHeaders();//获取设置的header信息
         }
-        GsonRequest<IResponse> request = new GsonRequest<>(method, url, paramsMap, clazz, responseListener, responseListener, isCache, mContext);
+        GsonRequest<IResponse> request = new GsonRequest<>(method, url, paramsMap, headerMap, clazz, responseListener, responseListener, isCache, mContext);
         request.setRetryPolicy(new DefaultRetryPolicy());//设置超时时间，重试次数，重试因子（1,1*2,2*2,4*2）等
         return request;
     }
