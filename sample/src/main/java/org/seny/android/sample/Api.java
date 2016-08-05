@@ -37,7 +37,7 @@ public class Api {
     private HttpLoader mLoader;
 
 
-    public Api(Context context) {
+    private Api(Context context) {
         this.mLoader = HttpLoader.getInstance(context);
     }
 
@@ -47,8 +47,8 @@ public class Api {
     /**
      * 返回单例对象
      *
-     * @param context
-     * @return
+     * @param context   上下文
+     * @return  返回单例对象
      */
     public static synchronized Api getInstance(Context context) {
         if (sInstance == null) {
@@ -62,7 +62,7 @@ public class Api {
     /**
      * 生成一个HttpParams 对象，默认包含通用参数信息
      *
-     * @return
+     * @return  返回生成的HttpParams对象
      */
     public HttpParams generateHttpParams() {
         HttpParams params = new HttpParams();
@@ -89,9 +89,9 @@ public class Api {
     /**
      * Test:请求新闻
      *
-     * @param listener
-     * @param tag
-     * @return
+     * @param listener  处理结果的监听器
+     * @param tag  用来标识当前Request,用于{@link #cancelRequest(Object tag)}
+     * @return  Request对象
      */
     public Request postNews(HttpLoader.HttpListener listener, Object tag) {
         HttpParams params = generateHttpParams();//设置参数
@@ -108,10 +108,10 @@ public class Api {
     /**
      * Test:请求天气
      *
-     * @param city
-     * @param listener
-     * @param tag
-     * @return
+     * @param city  城市
+     * @param listener   处理结果的监听器
+     * @param tag   用来标识当前Request,用于{@link #cancelRequest(Object tag)}
+     * @return  Request对象
      */
     public Request getWeather(String city, HttpLoader.HttpListener listener, Object tag) {
         HttpParams paramsGet = generateHttpParams()
