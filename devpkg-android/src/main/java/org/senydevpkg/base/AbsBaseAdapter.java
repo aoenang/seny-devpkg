@@ -1,5 +1,6 @@
 package org.senydevpkg.base;
 
+import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -34,15 +35,20 @@ import java.util.List;
  */
 public abstract class AbsBaseAdapter<T> extends BaseAdapter {
 
-    private BaseHolder holder;
+    private final Context mContext;
     private List<T> mData = new ArrayList<>();
+
+    public Context getContext() {
+        return mContext;
+    }
 
     /**
      * 接收AbsListView要显示的数据
      *
      * @param data    要显示的数据
      */
-    public AbsBaseAdapter( List<T> data) {
+    public AbsBaseAdapter(Context context,List<T> data) {
+        mContext = context;
         this.mData = data;
     }
 
@@ -77,6 +83,7 @@ public abstract class AbsBaseAdapter<T> extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        BaseHolder holder;
         if (convertView != null) {
             holder = (BaseHolder) convertView.getTag();
         } else {

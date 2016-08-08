@@ -36,17 +36,15 @@ import java.util.List;
 
 public class WeatherAdapter extends AbsBaseAdapter<WeatherResponse.DataEntity.WeatherEntity> {
 
-    private final Context mContext;
 
     public WeatherAdapter(Context context, List<WeatherResponse.DataEntity.WeatherEntity> data) {
-        super(data);
-        mContext = context;
+        super(context,data);
     }
 
     @Override
     protected BaseHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        return new WeatherViewHolder(mContext);
+        return new WeatherViewHolder(getContext());
     }
 
 
