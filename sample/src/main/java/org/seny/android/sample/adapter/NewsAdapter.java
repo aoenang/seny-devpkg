@@ -39,7 +39,7 @@ public class NewsAdapter extends AbsBaseAdapter<NewsResponse.DataEntity.TagEntit
     private final Context mContext;
 
     public NewsAdapter(Context context, List<NewsResponse.DataEntity.TagEntity> data) {
-        super(data);
+        super(context,data);
         mContext = context;
     }
 
