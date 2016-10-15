@@ -242,7 +242,7 @@ public class HttpLoader {
     }
 
     /**
-     * 发送get方式的GsonRequest请求,默认缓存请求结果
+     * 发送get方式的GsonRequest请求,默认不缓存请求结果,如果想缓存请求结果,请调用{@link #get(String, HttpParams, Class, int, HttpListener, boolean)}
      *
      * @param url         请求地址
      * @param params      GET请求参数，拼接在URL后面。可以为null
@@ -251,7 +251,7 @@ public class HttpLoader {
      * @param listener    处理响应的监听器
      */
     public Request<?> get(String url, HttpParams params, Class<? extends IResponse> clazz, final int requestCode, final HttpListener listener) {
-        return request(Request.Method.GET, url, params, clazz, requestCode, listener, true);
+        return request(Request.Method.GET, url, params, clazz, requestCode, listener, false);
     }
 
     /**

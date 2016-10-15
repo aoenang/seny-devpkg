@@ -118,7 +118,7 @@ public class Api {
                 .put("city", city)
                 .put("id", "0")
                 .put("cuid", "774B771B3E8B365FCA12C19537331BA2|000000000000000");
-        return mLoader.get(Constants.API_GET, paramsGet, WeatherResponse.class, Constants.REQUEST_CODE_WEATHER, listener).setTag(tag);//发送Get请求并返回Request对象
+        return mLoader.get(Constants.API_GET, paramsGet, WeatherResponse.class, Constants.REQUEST_CODE_WEATHER, listener,true).setTag(tag);//发送Get请求并返回Request对象
     }
 
 
