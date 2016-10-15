@@ -16,7 +16,8 @@ import org.springframework.util.Assert;
  * @author Seny
  */
 public class MyToast {
-    private static Toast mToast;
+    private static Toast sToast;
+    private static Handler sHandler = new Handler(Looper.getMainLooper());
 
     /**
      * show a short toast
@@ -61,20 +62,20 @@ public class MyToast {
      *
      * @param context
      * @param text
-     * @param lengthShort
+     * @param durarion
      */
-    private static void safeShow(final Context context, final String text, final int lengthShort) {
+    private static void safeShow(final Context context, final String text, final int durarion) {
         if (Looper.myLooper() != Looper.getMainLooper()) {//如果不是在主线程弹出吐司，那么抛到主线程弹
-            new Handler(Looper.getMainLooper()).post(
+            sHandler.post(
                     new Runnable() {
                         @Override
                         public void run() {
-                            showToast(context, text, lengthShort);
+                            showToast(context, text, durarion);
                         }
                     }
             );
         } else {
-            showToast(context, text, lengthShort);
+            showToast(context, text, durarion);
         }
     }
 
@@ -83,15 +84,15 @@ public class MyToast {
      *
      * @param context
      * @param text
-     * @param lengthShort
+     * @param durarion
      */
-    private static void showToast(Context context, String text, int lengthShort) {
-        if (mToast == null) {
-            mToast = Toast.makeText(context, null, Toast.LENGTH_SHORT);
+    private static void showToast(Context context, String text, int durarion) {
+        if (sToast == null) {
+            sToast = Toast.makeText(context, null, Toast.LENGTH_SHORT);
         }
-        mToast.setDuration(lengthShort);
-        mToast.setText(text);
-        mToast.show();
+        sToast.setDuration(durarion);
+        sToast.setText(text);
+        sToast.show();
     }
 
 
